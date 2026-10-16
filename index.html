@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MK Market</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #000000; color: #ffffff;
+            font-family: 'Cairo', sans-serif; overflow-x: hidden; padding-top: 70px; position: relative;
+        }
+
+        .stars-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; overflow: hidden; z-index: 0;
+        }
+        .star {
+            position: absolute; background: #ffffff; border-radius: 50%;
+            animation: starTwinkle var(--duration) infinite ease-in-out;
+            box-shadow: 0 0 8px #ffffff, 0 0 15px #FFD700, 0 0 22px #00d2ff;
+        }
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0.1; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.6); }
+        }
+
+        header, .page-content, #intro-screen, .modal-overlay { position: relative; z-index: 2; }
+
+        #intro-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background-color: #000000; display: flex; justify-content: center; align-items: center;
+            z-index: 99999; transition: opacity 1s ease, visibility 1s ease; cursor: pointer;
+        }
+        .intro-container { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+        .logo-text-intro {
+            font-size: 4rem; font-weight: 900; letter-spacing: 4px;
+            background: linear-gradient(135deg, #FFE082 0%, #FFD700 50%, #B8860B 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: fadeInGold 2s ease-out forwards;
+        }
+        .loader-line {
+            width: 0; height: 4px; background: #00d2ff;
+            box-shadow: 0 0 12px #00d2ff; border-radius: 4px; margin-top: 15px;
+            animation: fillBlueLine 2s ease-in-out 1.8s forwards;
+        }
+        .start-hint-text {
+            color: #FFD700; font-size: 1.2rem; font-weight: 800; margin-top: 25px;
+            animation: pulseHint 1.5s infinite alternate;
+        }
+
+        header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 70px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95), rgba(15,15,15,0.9));
+            border-bottom: 2px solid #FFD700; display: flex; justify-content: space-between;
+            align-items: center; padding: 0 40px; z-index: 9999;
+        }
+        .brand-logo {
+            font-size: 1.8rem; font-weight: 900; color: #ff1a1a;
+            text-shadow: 0 0 10px #ff0000; cursor: pointer; letter-spacing: 1px;
+        }
+        .nav-links { display: flex; list-style: none; gap: 25px; }
+        .nav-links li a {
+            color: #ffffff; text-decoration: none; font-size: 1.05rem; font-weight: 700;
+            cursor: pointer; padding: 5px 12px; border-radius: 4px; transition: 0.3s;
+        }
+        .nav-links li a:hover, .nav-links li a.active {
+            color: #FFD700; background-color: rgba(255, 215, 0, 0.05);
+        }
+
+        .page-content { display: none; min-height: calc(100vh - 70px); padding: 20px; }
+        .page-content.active { display: block; }
+
+        .hero-section {
+            position: relative; width: 100%; height: 80vh; margin-top: 5px;
+            display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2;
+        }
+        .hero-video {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; filter: brightness(0.65); pointer-events: none;
+        }
+        .hero-title {
+            position: relative; z-index: 3; font-size: 5rem; font-weight: 900; letter-spacing: 6px;
+            color: #00d2ff; text-transform: uppercase; text-shadow: 3px 3px 0px #000000, 0 0 25px #00d2ff;
+            -webkit-text-stroke: 1.5px #000000;
+        }
+
+        .features-bar {
+            position: relative; z-index: 3; max-width: 1300px; margin: 30px auto;
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.98), rgba(20, 20, 20, 0.98));
+            border: 2px solid #FFD700; border-radius: 12px; padding: 15px 25px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
+        }
+        .feature-brand-img {
+            display: flex; flex-direction: column; align-items: flex-start; color: #fff; font-weight: 900; font-size: 1.8rem;
+            letter-spacing: 2px; text-transform: uppercase; line-height: 1;
+        }
+        .feature-brand-sub { font-size: 0.65rem; color: #ccc; letter-spacing: 3px; font-weight: 700; margin-top: 3px; }
+        
+        .feature-divider { width: 1px; height: 35px; background-color: #8b6b14; }
+
+        .feature-item-custom {
+            display: flex; align-items: center; gap: 10px; color: #ffffff; font-weight: 800; font-size: 1rem;
+        }
+        .feature-item-custom svg { width: 26px; height: 26px; fill: #ffffff; }
+
+        .section-box {
+            position: relative; max-width: 900px; margin: 40px auto;
+            background-image: url('GTA V.jpg'); background-size: cover; background-position: center;
+            padding: 45px 30px; border-radius: 14px; text-align: center; border: 2px solid #FFD700; overflow: hidden;
+        }
+        .section-box::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.75); z-index:1; }
+        .section-box > * { position: relative; z-index: 2; }
+        .section-box h2 { color: #FFD700; font-size: 2.4rem; font-weight: 900; margin-bottom: 20px; }
+        
+        .discord-icon-img {
+            display: inline-block; width: 75px; height: 75px; border-radius: 50%;
+            object-fit: cover; border: 2px solid #FFD700; transition: 0.3s; margin: 10px auto 10px auto;
+        }
+        .discord-btn {
+            text-decoration: none; display: inline-block; transition: 0.3s;
+        }
+        .discord-btn:hover .discord-icon-img { transform: scale(1.18) rotate(5deg); }
+
+        .discord-members-count {
+            color: #38ef7d; font-size: 1.15rem; font-weight: 800; margin-top: 8px; margin-bottom: 15px;
+        }
+
+        .admin-title { color: #d1d1d1; font-size: 1.2rem; font-weight: 700; margin-top: 5px; }
+        .admin-name { font-size: 2rem; font-weight: 900; color: #FFD700; }
+
+        .store-layout { max-width: 1250px; margin: 20px auto 40px auto; display: flex; gap: 30px; }
+        .store-sidebar {
+            width: 270px; background: #141414; border: 2px solid #FFD700; border-radius: 14px;
+            padding: 25px 15px; display: flex; flex-direction: column; gap: 15px; height: fit-content;
+        }
+        .btn-store-cat {
+            width: 100%; padding: 16px 20px; background: #1c1c1c; color: #fff; border: 1px solid #333;
+            border-radius: 10px; font-size: 1.15rem; font-weight: 800; cursor: pointer; text-align: right; transition: 0.3s;
+        }
+        .btn-store-cat:hover, .btn-store-cat.active { background: #FFD700; color: #000; border-color: #FFD700; }
+        .store-main-content { flex-grow: 1; }
+        .store-section-pane { display: none; }
+        .store-section-pane.active { display: block; }
+        .store-page-title {
+            font-size: 2.6rem; font-weight: 900; color: #FFD700; margin-bottom: 30px;
+            border-bottom: 2px solid #222; padding-bottom: 15px;
+        }
+
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
+        .product-card {
+            background: #151515; border: 1px solid #2a2a2a; border-radius: 12px;
+            overflow: hidden; transition: 0.3s; display: flex; flex-direction: column;
+        }
+        .product-card:hover { border-color: #FFD700; transform: translateY(-5px); }
+        .product-img-box { width: 100%; height: 180px; background: #0a0a0a; overflow: hidden; }
+        .product-img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .product-details { padding: 20px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-name { font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 10px; }
+        .product-price { font-size: 1.2rem; font-weight: 900; color: #FFD700; margin-bottom: 15px; }
+
+        .btn-buy-direct {
+            width: 100%; padding: 12px; background: #FFD700; color: #000; border: none;
+            border-radius: 8px; font-weight: 900; font-size: 1.05rem; cursor: pointer; transition: 0.2s;
+        }
+        .btn-buy-direct:hover { background: #ffe033; }
+        .btn-unavailable {
+            width: 100%; padding: 12px; background: #333; color: #888; border: 1px solid #444;
+            border-radius: 8px; font-weight: 800; font-size: 1.05rem; cursor: not-allowed; text-align: center;
+        }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
+            z-index: 100000; opacity: 0; visibility: hidden; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .custom-popup-card {
+            background: #111; border: 2px solid #FFD700; border-radius: 16px;
+            padding: 30px; text-align: center; max-width: 450px; width: 90%;
+        }
+        .qty-picker-box { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; }
+        .btn-qty-step { width: 45px; height: 45px; background: #222; border: 1px solid #FFD700; color: #FFD700; font-size: 1.5rem; font-weight: 900; border-radius: 8px; cursor: pointer; }
+        .qty-input-field { width: 90px; height: 45px; background: #1a1a1a; border: 2px solid #FFD700; border-radius: 8px; color: #fff; font-size: 1.4rem; font-weight: 900; text-align: center; outline: none; }
+        .coupon-input-field {
+            width: 100%; padding: 12px; background: #1a1a1a; border: 2px solid #333; border-radius: 8px;
+            color: #fff; font-size: 1.1rem; font-weight: 800; text-align: center; margin-bottom: 15px; outline: none;
+        }
+        .coupon-input-field:focus { border-color: #FFD700; }
+        .popup-calculated-total {
+            background: rgba(255,215,0,0.1); border: 1px dashed #FFD700; border-radius: 8px;
+            padding: 12px; font-size: 1.3rem; font-weight: 900; color: #FFD700; margin-bottom: 20px;
+        }
+
+        .support-box { max-width: 850px; margin: 40px auto; background: #121212; border: 2px solid #FFD700; border-radius: 16px; padding: 40px; text-align: center; }
+        .support-main-title { font-size: 1.6rem; font-weight: 800; color: #fff; margin-bottom: 30px; }
+        .rules-card-box { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 25px 30px; margin-bottom: 35px; text-align: right; }
+        .rules-title { font-size: 1.4rem; font-weight: 900; color: #FFD700; margin-bottom: 18px; }
+        .rules-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+        .rules-list li { font-size: 1.15rem; font-weight: 700; color: #e0e0e0; }
+        .btn-support-green { display: inline-block; width: 100%; max-width: 420px; padding: 16px; background: linear-gradient(135deg, #11998e, #38ef7d); color: #000; text-decoration: none; font-size: 1.35rem; font-weight: 900; border-radius: 10px; }
+
+        .account-layout { max-width: 950px; margin: 30px auto; display: flex; gap: 25px; }
+        .account-sidebar { width: 250px; background: #141414; border: 2px solid #FFD700; border-radius: 14px; padding: 20px 15px; display: flex; flex-direction: column; gap: 12px; height: fit-content; }
+        .btn-account-tab { width: 100%; padding: 14px; background: #1f1f1f; color: #fff; border: 1px solid #333; border-radius: 8px; font-size: 1.1rem; font-weight: 800; cursor: pointer; text-align: right; }
+        .btn-account-tab:hover, .btn-account-tab.active { background: #FFD700; color: #000; }
+        .account-content-area { flex-grow: 1; background: #141414; border: 2px solid #FFD700; border-radius: 14px; padding: 30px; }
+        .account-tab-pane { display: none; }
+        .account-tab-pane.active { display: block; }
+        .discord-link-btn { display: inline-flex; align-items: center; gap: 12px; background-color: #5865F2; color: #fff; border: none; padding: 14px 28px; font-size: 1.2rem; font-weight: 900; border-radius: 10px; cursor: pointer; text-decoration: none; }
+        .user-profile-card { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .user-avatar-img { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #FFD700; object-fit: cover; }
+        .user-info-list { width: 100%; text-align: right; background: #1b1b1b; border: 1px solid #333; border-radius: 10px; padding: 20px 25px; display: flex; flex-direction: column; gap: 12px; }
+        .user-info-item { font-size: 1.1rem; font-weight: 700; color: #d1d1d1; display: flex; justify-content: space-between; }
+        .user-info-item span { color: #FFD700; font-weight: 900; }
+        .orders-list-container { display: flex; flex-direction: column; gap: 15px; }
+        .order-history-card { background: #1b1b1b; border: 1px solid #333; border-radius: 10px; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; }
+        .order-status-badge { padding: 6px 14px; border-radius: 6px; font-weight: 800; font-size: 0.95rem; }
+        .status-delivered { background: rgba(56, 239, 125, 0.15); color: #38ef7d; border: 1px solid #38ef7d; }
+        .status-pending { background: rgba(255, 215, 0, 0.15); color: #FFD700; border: 1px solid #FFD700; }
+        .status-cancelled { background: rgba(255, 26, 26, 0.15); color: #ff4d4d; border: 1px solid #ff4d4d; }
+
+        @keyframes fadeInGold { 0% { opacity: 0; transform: scale(0.85); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes fillBlueLine { 0% { width: 0%; } 100% { width: 100%; } }
+        @keyframes pulseHint { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="stars-container" id="stars-field"></div>
+
+    <div id="intro-screen" onclick="startWebsiteAudio()">
+        <div class="intro-container">
+            <h1 class="logo-text-intro">MK Market</h1>
+            <div class="loader-line"></div>
+            <div class="start-hint-text">إضغط هنا للدخول</div>
+        </div>
+    </div>
+
+    <header>
+        <div class="brand-logo" onclick="switchPage('home')">MK Market</div>
+        <ul class="nav-links">
+            <li><a onclick="switchPage('home')" id="link-home" class="active">الصفحة الرئيسية</a></li>
+            <li><a onclick="switchPage('store')" id="link-store">المتجر</a></li>
+            <li><a onclick="switchPage('support')" id="link-support">الدعم الفني</a></li>
+            <li><a onclick="switchPage('account')" id="link-account">حسابي</a></li>
+        </ul>
+    </header>
+
+    <div id="page-home" class="page-content active">
+        <div class="hero-section">
+            <video id="hero-vid" src="bmw.mp4" class="hero-video" autoplay loop muted playsinline></video>
+            <h1 class="hero-title">𝐌𝐚𝐳𝐢𝐤𝐚</h1>
+        </div>
+
+        <div class="features-bar">
+            <div class="feature-brand-img">
+                MK
+                <span class="feature-brand-sub">MTA SERVER</span>
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-item-custom">
+                <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                معاملات آمنة
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-item-custom">
+                <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                دعم سريع
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-item-custom">
+                <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                متوفر دائماً
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-item-custom">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                أسعار مناسبة
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-item-custom">
+                <svg viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.41 11.93 6 13.34l5.66 5.66 12-12-1.42-1.41zM.41 13.34L6 18.93l1.42-1.41L1.83 11.93.41 13.34z"/></svg>
+                شراء أفضل وأسهل
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h2>سيرفر الديسكورد الرسمي</h2>
+            <a href="https://discord.gg/nhdNsEcw9" target="_blank" class="discord-btn">
+                <img src="https://cdn.discordapp.com/attachments/1547697154154569800/1560640158557011978/b174e5436c3620d5.png?ex=6ad372e9&is=6ad22169&hm=0ad15ea4030f72f144b82030ffdd99d5a72d621428dd667b73f0a8bb1f9ed6ba&" class="discord-icon-img" alt="Discord Logo">
+            </a>
+            <div class="discord-members-count" id="discord-members-display">عدد أعضاء السيرفر: جاري التحميل...</div>
+            <div class="admin-title">مسؤول المتجر</div>
+            <div class="admin-name">𝐌𝐚𝐳𝐢𝐤𝐚</div>
+        </div>
+    </div>
+
+    <div id="page-store" class="page-content">
+        <div id="store-maintenance-banner" style="display:none; background: #ff4d4d; color: #fff; padding: 15px; text-align: center; font-weight: 900; font-size: 1.3rem; border-radius: 8px; margin-bottom: 20px;">
+            ⚠️ المتجر مغلق حالياً أو تحت الصيانة، لا يمكن إتمام أي عمليات شراء!
+        </div>
+
+        <div class="store-layout">
+            <div class="store-main-content">
+                <div id="pane-games" class="store-section-pane active">
+                    <h1 class="store-page-title" style="display:none;"></h1>
+                    <div class="products-grid" id="games-grid"></div>
+                </div>
+                <div id="pane-discord-bots" class="store-section-pane">
+                    <h1 class="store-page-title">قسم برمجة بوتات الديسكورد</h1>
+                    <div class="products-grid" id="discord-bots-grid"></div>
+                </div>
+                <div id="pane-websites" class="store-section-pane">
+                    <h1 class="store-page-title">قسم برمجة المواقع</h1>
+                    <div class="products-grid" id="websites-grid"></div>
+                </div>
+            </div>
+            <div class="store-sidebar">
+                <button class="btn-store-cat active" onclick="switchStoreSection('games', this)">🎮 قسم الألعاب</button>
+                <button class="btn-store-cat" onclick="switchStoreSection('discord-bots', this)">🤖 قسم البوتات</button>
+                <button class="btn-store-cat" onclick="switchStoreSection('websites', this)">🌐 قسم الموقع</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-qty-overlay" class="modal-overlay">
+        <div class="custom-popup-card">
+            <div style="color: #FFD700; font-size: 1.4rem; font-weight: 900; margin-bottom: 10px;" id="qty-modal-title">اسم المنتج</div>
+            <div style="color: #bbb; font-size: 1.05rem; margin-bottom: 15px;" id="qty-modal-unit-price">سعر القطعة: 0</div>
+            
+            <div class="qty-picker-box">
+                <button class="btn-qty-step" onclick="adjustModalQty(-1)">-</button>
+                <input type="number" id="qty-modal-input" class="qty-input-field" value="1" min="1" oninput="recalculateModalTotal()">
+                <button class="btn-qty-step" onclick="adjustModalQty(1)">+</button>
+            </div>
+
+            <input type="text" id="modal-coupon-input" class="coupon-input-field" placeholder="كود الخصم (اختياري)" oninput="recalculateModalTotal()">
+
+            <div class="popup-calculated-total">
+                الإجمالي: <span id="qty-modal-calculated-val">0</span>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-buy-direct" onclick="confirmDirectPurchase()">تأكيد الشراء</button>
+                <button class="btn-buy-direct" style="background: #333; color: #fff;" onclick="closeQtyModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-support" class="page-content">
+        <div class="support-box">
+            <h1 class="support-main-title">في حال واجهت أي مشكلة يمكنك التواصل مع الدعم الفني</h1>
+            <div class="rules-card-box">
+                <h2 class="rules-title">شروط يجب الإلتزام بها:</h2>
+                <ul class="rules-list">
+                    <li>1- التحدث بشكل لائق مع الدعم الفني</li>
+                    <li>2- عدم الإستهتار أو المزاح</li>
+                    <li>3- شرح مشكلتك بالتفصيل</li>
+                </ul>
+            </div>
+            <a href="https://discord.com/channels/1381328041191669810/1550645035697967185" target="_blank" class="btn-support-green">التواصل مع الدعم الفني</a>
+        </div>
+    </div>
+
+    <div id="page-account" class="page-content">
+        <div class="account-layout">
+            <div class="account-sidebar">
+                <button class="btn-account-tab active" onclick="switchAccountTab('info', this)">معلوماتي</button>
+                <button class="btn-account-tab" onclick="switchAccountTab('history', this)">سجل الشراء</button>
+            </div>
+            <div class="account-content-area">
+                <div id="tab-info" class="account-tab-pane active">
+                    <h1 class="store-page-title" style="font-size: 2rem; margin-bottom: 20px; text-align: center;">حساب المستخدم</h1>
+                    <div id="account-unlinked-view" style="text-align: center;">
+                        <p style="color: #bbb; font-size: 1.1rem; margin-bottom: 20px;">الرجاء ربط حساب الديسكورد الخاص بك لتتمكن من إتمام عمليات الشراء.</p>
+                        <button class="discord-link-btn" onclick="linkDiscordAccount()">ربط حساب الديسكورد</button>
+                    </div>
+                    <div id="account-linked-view" style="display: none;">
+                        <div class="user-profile-card">
+                            <img id="user-discord-avatar" class="user-avatar-img" src="" alt="صورة المستخدم">
+                            <div class="user-info-list">
+                                <div class="user-info-item">اسمك : <span id="lbl-user-name">-</span></div>
+                                <div class="user-info-item">اسم المستخدم : <span id="lbl-user-username">-</span></div>
+                                <div class="user-info-item">ايدي الديسكورد : <span id="lbl-user-id">-</span></div>
+                                <div class="user-info-item">تاريخ التسجيل : <span id="lbl-user-date">-</span></div>
+                            </div>
+                            <button class="btn-store-cat" style="width: 100%; text-align: center; background: #cc0000; border-color: #ff4d4d;" onclick="unlinkDiscordAccount()">إلغاء ربط الحساب</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-history" class="account-tab-pane">
+                    <h1 class="store-page-title" style="font-size: 2rem; margin-bottom: 20px; text-align: center;">سجل الطلبات</h1>
+                    <div class="orders-list-container" id="orders-history-container">
+                        <p style="text-align: center; color: #888; font-size: 1.1rem;">لا توجد طلبات سابقة حتى الآن!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-success-overlay" class="modal-overlay">
+        <div class="custom-popup-card">
+            <div style="width: 65px; height: 65px; background: #FFD700; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.3rem; font-weight: 900; margin: 0 auto 15px auto;">✓</div>
+            <div style="font-size: 1.25rem; font-weight: 800; margin-bottom: 25px; line-height: 1.6; color:#FFD700;">
+                تم إرسال طلب شرائك للمسؤول وجار الأن تجهيزة وسيتم التواصل معك قريباً
+            </div>
+            <button class="btn-buy-direct" onclick="closeSuccessModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <script>
+        const DISCORD_CLIENT_ID = '1559827503093129236';
+        const DISCORD_INVITE_CODE = 'nhdNsEcw9'; // كود سيرفر الديسكورد الخاص بك
+
+        const gamesProducts = [
+            { name: "مولد كهربائي متطور", price: 2300, currency: "$", img: "item1.jpg" },
+            { name: "نفط صالح للإستعمال", price: 500, currency: "$", img: "item2.jpg" },
+            { name: "ألواح طاقة شمسية", price: 880, currency: "$", img: "item3.jpg" },
+            { name: "حزمة خشب", price: 350, currency: "$", img: "item4.jpg" },
+            { name: "عبوة عسل", price: 330, currency: "$", img: "item5.jpg" },
+            { name: "حديد", price: 500, currency: "$", img: "item6.jpg" },
+            { name: "ملابس", price: 500, currency: "$", img: "item7.jpg" },
+            { name: "سمك", price: 250, currency: "$", img: "item8.jpg" },
+            { name: "سلة خضروات", price: 330, currency: "$", img: "item9.jpg" },
+            { name: "عصير عنب", price: 350, currency: "$", img: "item10.jpg" },
+            { name: "دجاج مغلف", price: 300, currency: "$", img: "item11.jpg" },
+            { name: "رشاش أي كي", price: 1500000, currency: "$", img: "game1.jpg" },
+            { name: "سلاح رايفل", price: 1500000, currency: "$", img: "game2.jpg" },
+            { name: "رشاش يوزي", price: 900000, currency: "$", img: "game3.jpg" },
+            { name: "سلاح شوتجن", price: 300000, currency: "$", img: "game4.jpg" },
+            { name: "مسدس كولت", price: 50000, currency: "$", img: "game5.jpg" },
+            { name: "حشيش", price: 500, currency: "$", img: "game6.jpg" },
+            { name: "كوكاين", price: 1250, currency: "$", img: "game7.jpg" },
+            { name: "شابو", price: 1750, currency: "$", img: "game8.jpg" },
+            { name: "أفيون", price: 2750, currency: "$", img: "game9.jpg" }
+        ];
+
+        const discordBotsProducts = [
+            { name: "بوت تذاكر", price: 200, currency: "EGP", img: "bot1.jpg" },
+            { name: "بوت ترحيب", price: 100, currency: "EGP", img: "bot1.jpg" },
+            { name: "بوت حماية", price: 400, currency: "EGP", img: "bot1.jpg" },
+            { name: "بوت تحكم بالسيرفر", price: 500, currency: "EGP", img: "bot1.jpg" },
+            { name: "بوت سجلات", price: 200, currency: "EGP", img: "bot1.jpg" }
+        ];
+
+        const websitesProducts = [
+            { name: "موقع للمتاجر", price: 300, currency: "EGP", img: "web1.jpg" },
+            { name: "موقع للسيرفرات", price: 500, currency: "EGP", img: "web1.jpg" },
+            { name: "موقع للألعاب", price: 400, currency: "EGP", img: "web1.jpg" }
+        ];
+
+        let ordersHistory = JSON.parse(localStorage.getItem('mk_orders_history')) || [];
+        let currentBuyItem = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            let visitors = parseInt(localStorage.getItem('mk_visitors_count')) || 0;
+            if (!sessionStorage.getItem('mk_visited_session')) {
+                visitors++;
+                localStorage.setItem('mk_visitors_count', visitors);
+                sessionStorage.setItem('mk_visited_session', 'true');
+            }
+
+            const starsField = document.getElementById('stars-field');
+            if (starsField) {
+                for (let i = 0; i < 160; i++) {
+                    const star = document.createElement('div');
+                    star.classList.add('star');
+                    star.style.left = `${Math.random() * 100}%`;
+                    star.style.top = `${Math.random() * 100}%`;
+                    star.style.width = `${Math.random() * 2.5 + 1.2}px`;
+                    star.style.height = star.style.width;
+                    star.style.setProperty('--duration', `${Math.random() * 3 + 1.5}s`);
+                    starsField.appendChild(star);
+                }
+            }
+
+            fetchDiscordServerMembers();
+            setInterval(fetchDiscordServerMembers, 10000); // تحديث عدد الأعضاء تلقائياً كل 10 ثواني
+
+            checkStoreStatusOnLoad();
+            renderAllStoreGrids();
+            handleDiscordAuthCallback();
+            renderOrdersHistory();
+        });
+
+        function fetchDiscordServerMembers() {
+            fetch(`https://discord.com/api/v10/invites/${DISCORD_INVITE_CODE}?with_counts=true`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.approximate_member_count) {
+                        document.getElementById('discord-members-display').innerText = `عدد أعضاء السيرفر: ${data.approximate_member_count}`;
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('discord-members-display').innerText = `عدد أعضاء السيرفر: غير متوفر`;
+                });
+        }
+
+        function checkStoreStatusOnLoad() {
+            let statusData = JSON.parse(localStorage.getItem('mk_store_status_data')) || { status: 'open' };
+            const banner = document.getElementById('store-maintenance-banner');
+            if(statusData.status !== 'open') {
+                if(banner) {
+                    banner.style.display = 'block';
+                    banner.innerText = statusData.status === 'closed' ? '⚠️ المتجر مغلق حالياً، لا يمكن إتمام أي عمليات شراء!' : '⚠️ المتجر تحت الصيانة حالياً، لا يمكن إتمام أي عمليات شراء!';
+                }
+            } else {
+                if(banner) banner.style.display = 'none';
+            }
+        }
+
+        function renderAllStoreGrids() {
+            renderGrid('games-grid', gamesProducts, 'ألعاب');
+            renderGrid('discord-bots-grid', discordBotsProducts, 'برمجة بوتات ديسكورد');
+            renderGrid('websites-grid', websitesProducts, 'مواقع');
+        }
+
+        function renderGrid(elementId, items, categoryName) {
+            const grid = document.getElementById(elementId);
+            if (!grid) return;
+            let productStatusMap = JSON.parse(localStorage.getItem('mk_product_status')) || {};
+            let storeStatusData = JSON.parse(localStorage.getItem('mk_store_status_data')) || { status: 'open' };
+            let html = '';
+
+            items.forEach(prod => {
+                let isActive = productStatusMap[prod.name] !== false;
+                let actionButtonHtml = '';
+
+                if (storeStatusData.status !== 'open') {
+                    actionButtonHtml = `<div class="btn-unavailable">المتجر ${storeStatusData.status === 'closed' ? 'مغلق' : 'صيانة'}</div>`;
+                } else if (!isActive) {
+                    actionButtonHtml = `<div class="btn-unavailable">غير متوفر حالياً</div>`;
+                } else {
+                    actionButtonHtml = `<button class="btn-buy-direct" onclick="openQtyModal('${prod.name}', ${prod.price}, '${prod.currency}', '${categoryName}')">شراء مباشر</button>`;
+                }
+
+                html += `
+                    <div class="product-card">
+                        <div class="product-img-box"><img src="${prod.img}" alt="${prod.name}" onerror="this.src='https://via.placeholder.com/300x200/1e1e1e/FFD700?text=${encodeURIComponent(prod.name)}'"></div>
+                        <div class="product-details">
+                            <div class="product-name">${prod.name}</div>
+                            <div class="product-price">${prod.price} ${prod.currency}</div>
+                        </div>
+                        <div style="padding: 0 15px 15px 15px;">${actionButtonHtml}</div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+
+        function openQtyModal(name, price, currency, category) {
+            let storeStatusData = JSON.parse(localStorage.getItem('mk_store_status_data')) || { status: 'open' };
+            if (storeStatusData.status !== 'open') {
+                alert("عذراً، المتجر مغلق أو تحت الصيانة حالياً!");
+                return;
+            }
+            currentBuyItem = { name, price, currency, category };
+            document.getElementById('qty-modal-title').innerText = name;
+            document.getElementById('qty-modal-unit-price').innerText = `سعر القطعة: ${price} ${currency}`;
+            document.getElementById('qty-modal-input').value = 1;
+            document.getElementById('modal-coupon-input').value = '';
+            recalculateModalTotal();
+            document.getElementById('modal-qty-overlay').classList.add('active');
+        }
+
+        function closeQtyModal() { document.getElementById('modal-qty-overlay').classList.remove('active'); }
+
+        function adjustModalQty(delta) {
+            let input = document.getElementById('qty-modal-input');
+            let val = (parseInt(input.value) || 1) + delta;
+            if (val >= 1) { input.value = val; recalculateModalTotal(); }
+        }
+
+        function recalculateModalTotal() {
+            if (!currentBuyItem) return;
+            let qty = parseInt(document.getElementById('qty-modal-input').value) || 1;
+            let baseTotal = qty * currentBuyItem.price;
+            let couponCode = document.getElementById('modal-coupon-input').value.trim().toUpperCase();
+
+            let coupons = JSON.parse(localStorage.getItem('mk_coupons')) || [];
+            let foundCoupon = coupons.find(c => c.code === couponCode && c.expire > new Date().getTime());
+
+            let finalTotal = baseTotal;
+            if (foundCoupon) {
+                let discountAmount = (baseTotal * foundCoupon.discount) / 100;
+                finalTotal = baseTotal - discountAmount;
+            }
+
+            document.getElementById('qty-modal-calculated-val').innerText = `${finalTotal} ${currentBuyItem.currency} ${foundCoupon ? `(خصم ${foundCoupon.discount}%)` : ''}`;
+        }
+
+        function confirmDirectPurchase() {
+            const savedUser = localStorage.getItem('mk_discord_user');
+            if (!savedUser) {
+                alert("يجب ربط حساب الديسكورد أولاً من صفحة 'حسابي' لإتمام عملية الشراء!");
+                switchPage('account');
+                closeQtyModal();
+                return;
+            }
+            let qty = parseInt(document.getElementById('qty-modal-input').value) || 1;
+            let totalText = document.getElementById('qty-modal-calculated-val').innerText;
+            const user = JSON.parse(savedUser);
+
+            ordersHistory.unshift({
+                item: `${currentBuyItem.name} (الكمية: ${qty})`,
+                qty: qty,
+                total: totalText,
+                category: currentBuyItem.category === 'ألعاب' ? 'ألعاب' : 'برمجة',
+                status: 'pending', buyer: user.name, buyerId: user.id
+            });
+            localStorage.setItem('mk_orders_history', JSON.stringify(ordersHistory));
+            renderOrdersHistory();
+            closeQtyModal();
+            document.getElementById('modal-success-overlay').classList.add('active');
+        }
+
+        function closeSuccessModal() { document.getElementById('modal-success-overlay').classList.remove('active'); }
+
+        function switchStoreSection(sectionId, btnElement) {
+            document.querySelectorAll('.store-section-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.btn-store-cat').forEach(b => b.classList.remove('active'));
+            document.getElementById('pane-' + sectionId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        function linkDiscordAccount() {
+            const redirectUri = encodeURIComponent(window.location.href.split('?')[0].split('#')[0]);
+            window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=token&scope=identify`;
+        }
+
+        function handleDiscordAuthCallback() {
+            const fragment = new URLSearchParams(window.location.hash.slice(1));
+            const accessToken = fragment.get('access_token');
+            if (accessToken) {
+                fetch('https://discord.com/api/users/@me', { headers: { authorization: `Bearer ${accessToken}` } })
+                .then(res => res.json())
+                .then(data => {
+                    const realUser = {
+                        name: data.global_name || data.username, username: data.username, id: data.id,
+                        avatar: data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png',
+                        date: new Date().toLocaleDateString('ar-EG')
+                    };
+                    localStorage.setItem('mk_discord_user', JSON.stringify(realUser));
+                    window.location.hash = '';
+                    checkUserDiscordAuth();
+                    switchPage('account');
+                }).catch(err => console.error(err));
+            } else { checkUserDiscordAuth(); }
+        }
+
+        function unlinkDiscordAccount() { localStorage.removeItem('mk_discord_user'); checkUserDiscordAuth(); }
+
+        function checkUserDiscordAuth() {
+            const savedUser = localStorage.getItem('mk_discord_user');
+            const unlinkedView = document.getElementById('account-unlinked-view');
+            const linkedView = document.getElementById('account-linked-view');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                unlinkedView.style.display = 'none';
+                linkedView.style.display = 'block';
+                document.getElementById('user-discord-avatar').src = user.avatar;
+                document.getElementById('lbl-user-name').innerText = user.name;
+                document.getElementById('lbl-user-username').innerText = '@' + user.username;
+                document.getElementById('lbl-user-id').innerText = user.id;
+                document.getElementById('lbl-user-date').innerText = user.date;
+            } else {
+                unlinkedView.style.display = 'block';
+                linkedView.style.display = 'none';
+            }
+        }
+
+        function switchAccountTab(tabName, btnElement) {
+            document.querySelectorAll('.account-tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.btn-account-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        function renderOrdersHistory() {
+            const container = document.getElementById('orders-history-container');
+            if (!container) return;
+            if (ordersHistory.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888; font-size: 1.1rem;">لا توجد طلبات سابقة حتى الآن!</p>';
+                return;
+            }
+            let html = '';
+            ordersHistory.forEach(ord => {
+                let badgeClass = 'status-pending', statusText = 'جار تجهيز الطلب';
+                if (ord.status === 'delivered') { badgeClass = 'status-delivered'; statusText = 'تم الإستلام'; }
+                else if (ord.status === 'cancelled') { badgeClass = 'status-cancelled'; statusText = 'تم إلغاء الطلب'; }
+
+                html += `
+                    <div class="order-history-card">
+                        <div>
+                            <div style="font-weight: 800; font-size: 1.1rem; color: #fff;">${ord.item}</div>
+                            <div style="color: #aaa; font-size: 0.9rem; margin-top: 4px;">الإجمالي: ${ord.total}</div>
+                        </div>
+                        <div class="order-status-badge ${badgeClass}">${statusText}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function startWebsiteAudio() {
+            const intro = document.getElementById('intro-screen');
+            const vid = document.getElementById('hero-vid');
+            if (vid) { vid.muted = false; vid.play().catch(() => {}); }
+            intro.style.opacity = '0';
+            setTimeout(() => { intro.style.visibility = 'hidden'; }, 1000);
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-links li a').forEach(l => l.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            const activeLink = document.getElementById('link-' + pageId);
+            if (activeLink) activeLink.classList.add('active');
+
+            const vid = document.getElementById('hero-vid');
+            if (vid) {
+                if (pageId === 'home') { vid.muted = false; vid.play().catch(() => {}); }
+                else { vid.muted = true; }
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
